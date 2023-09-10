@@ -34,6 +34,12 @@ async function run() {
       console.log("Connected to the collection");
     }
 
+    const gamesCollection = database.collection("cards2");
+    if (gamesCollection) {
+      console.log("Connected to the collection");
+    }
+
+
     app.get('/api/cards', async (req, res) => {
 
       const page = parseInt(req.query.page) || 1;
@@ -56,6 +62,32 @@ async function run() {
         res.status(500).json({ message: 'Veriler alınamadı.' });
       }
     });
+
+    app.get('/api/games', async (req, res) => {
+        
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 8;
+  
+      const skip = (page - 1) * limit;
+        const total = await gamesCollection.countDocuments();
+        const pages = Math.ceil(total / limit);
+  
+        try {
+          const cursor = gamesCollection.find({}).skip(skip).limit(limit); 
+          const games = await cursor.toArray();
+          return res.json({
+            total,
+            pages,
+            games
+          });
+        } catch (err) {
+          console.log(err);
+          res.status(500).json({ message: 'Veriler alınamadı.' });
+        }
+
+    }
+    )
+
 
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}.`);
